@@ -1,0 +1,59 @@
+Step1: Create Middleware with name as class name under middleware
+------------------------------------------------------------------------
+<?php
+namespace App\Http\Middleware;
+use Closure;
+
+class SecureHeaders
+{
+    private $unwantedHeaderList = [
+        'X-Powered-By',
+        'Server',
+    ];
+    public function handle($request, Closure $next)
+    {
+        $this->removeUnwantedHeaders($this->unwantedHeaderList);
+        $response = $next($request);
+        $response->headers->set('Referrer-Policy', 'no-referrer-when-downgrade');
+        $response->headers->set('X-Content-Type-Options', 'nosniff');
+        $response->headers->set('X-XSS-Protection', '1; mode=block');
+//        $response->headers->set('X-Frame-Options', 'ALLOW-FROM https://*.istrives.com');
+        $response->headers->set('X-Frame-Options', 'SAMEORIGIN',false);
+//        $response->headers->set('X-Frame-Options', 'ALLOW-FROM https://*.istrives.com');
+        $response->headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+//        $response->headers->set('Content-Security-Policy', "default-src 'self' *.example.com ['self', 'https://*.istrives.com']");
+        $response->headers->set('Content-Security-Policy', 'default-src=(self "https://*.istrives.com")');
+        $response->headers->set('Permissions-Policy', 'geolocation=(self "https://*.istrives.com"), microphone=()');
+        return $response;
+    }
+    private function removeUnwantedHeaders($headerList)
+    {
+        foreach ($headerList as $header)
+            header_remove($header);
+    }
+}
+
+?>
+
+----------------------------------------------------------
+
+Step-2: Activate the middleware code from the kernal.php by calling the class:
+
+  /**
+     * The application's route middleware groups.
+     *
+     * @var array
+     */
+    protected $middlewareGroups = [
+        'web' => [
+            ..
+            ..
+            ..
+            \App\Http\Middleware\SecureHeaders::class, //Need to add this line to call Secure Header Middleware
+        ],
+
+        'api' => [
+            'throttle:60,1',
+            'bindings',
+        ],
+    ];
