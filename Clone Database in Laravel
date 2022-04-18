@@ -1,0 +1,24 @@
+    ################################CLONE Database #######################################################
+    /*
+        $BASE_DATABASE = 'ai_istrives_stage_6422';
+        $CLONED_DB     = 'ravi_14422';
+        $user = 'root';
+        $pass = 'ravi';
+        $host = 'localhost';
+        $this->cloneDatabase($user,$pass,$host,$BASE_DATABASE,$CLONED_DB);
+    */
+
+    public function cloneDatabase($user,$pass,$host,$BASE_DATABASE,$CLONED_DB){
+        try {
+            //-------------Create New Cloned DB----------------------
+            \DB::statement("DROP DATABASE IF EXISTS " . $CLONED_DB);
+            \DB::statement("CREATE Database " . $CLONED_DB);
+            //-------------import Data in Cloned DB------------------
+            exec("mysqldump --user={$user} --password={$pass} --host={$host} {$BASE_DATABASE} | mysql --user={$user} --password={$pass} --host={$host} {$CLONED_DB}");
+            echo "Database has been cloned successfully";
+
+        }catch (\Exception $e){
+            echo $e->getMessage();
+        }
+
+    }
