@@ -22,3 +22,28 @@
         }
 
     }
+    
+    
+    
+    public function createNewDatabase($template, $swiveltSchemaName, $iCrmSchemaName){
+        $response = false;
+        $user=env('DB_ADMINISTRATOR_USERNAME');
+        $pass=env('DB_ADMINISTRATOR_PASSWORD');
+        $host=env('DB_ADMINISTRATOR_HOST');
+
+        try {
+            //-------Swivelt
+            \DB::statement("CREATE Database " . $swiveltSchemaName);
+            exec("mysqldump -f --user={$user} --password={$pass} --host={$host} {$template['source_name']} | mysql -f --user={$user} --password={$pass} --host={$host} {$swiveltSchemaName}");
+
+           //---------ICRM
+            \DB::statement("CREATE Database " . $iCrmSchemaName);
+            exec("mysqldump -f --user={$user} --password={$pass} --host={$host} {$template['source_crm']} | mysql -f --user={$user} --password={$pass} --host={$host} {$iCrmSchemaName}");
+
+            $response = true;
+        } catch (\Exception $e) {
+            dd($e->getMessage());
+        }
+
+        return $response;
+    }
